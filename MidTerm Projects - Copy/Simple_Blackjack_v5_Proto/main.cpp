@@ -18,9 +18,7 @@ using namespace std;
 //Math/Physics/Conversions/Higher Dimensions - i.e. PI, e, etc...
 
 //Function Prototypes
-int chkRyl(int, int);    //    Calculates true value of card w/o replacing 
-                                    //     identifying values from RNG.
-void chkRyl(int, int&, int&);          //Prototype for improved chkRyl
+void chkRyl(int, int&, int&);          //Calculates true value of "drawn" card
 string prntSym (int);          //      Identifies and prints proper symbols for card values
 void calcAce (int, int, int&); //      used in calculation when aces are in play.
 
@@ -92,11 +90,46 @@ int main(int argc, char** argv) {
         cout << "" << endl;
     }
     else {
-    cout << "If you want to hit, press '1'. Otherwise press any other key to stay" << endl;
+    cout << "If you want to hit, press '1'. Otherwise press 2 to stay" << endl;
+    cin >> option;
     }
- 
     //Player Phase: Hit
-    
+    do{
+        if (option == 1){ //If player chooses to hit
+             pCardT = (rand() % (14 - 2 + 1)) + 2; //Range 2-14
+             chkRyl(pCardT, pAceCnt, plyrSum);
+             pCardS += prntSym(pCardT);
+             cout << "Player has: " << pCardS << endl;
+             cout << "Player's current total value: " << plyrSum << endl;
+             if (plyrSum > 21)
+                 cout << "Bust! Dealer wins! Player has over 21!" << endl;
+             else{ //If player has 21 or less
+                 cout << "Press 1 to hit. Else, press 2 to stay." << endl;
+                 cin >> option;
+             }
+        }
+    }while (option != 2 && plyrSum < 21);
+    if (option == 2 && plyrSum <= 21){
+    //Dealer Phase: Hit
+        while (dealSum < 16){ //Dealer stops hitting after first instance of 17+
+            if (dealSum < 17){ //Only hit if dealer less than 16
+                //Reveal Dealers Full Hand
+                dCardT = (rand() % (14 - 2 + 1)) + 2; //Range 2-14
+                chkRyl(dCardT, dAceCnt, dealSum);
+                dCardS += prntSym(dCardT);
+                cout << "Dealer has: " << dCardS << endl;
+                cout << "Dealer's current total value: " << dealSum << endl;
+            }
+            else {
+                cout << "Dealer has: " << dCardS << endl;
+                cout << "Dealer's current total value: " << dealSum << endl;
+            }
+        }
+    }
+    //Reveal Dealer's Hand if 17 or Higher
+ 
+    //Compare Hands to determine winner
+        
     //Display the outputs
 
     //Exit stage right or left!
@@ -105,16 +138,17 @@ int main(int argc, char** argv) {
 
 //Function implementation begins
 //Function to check true value of cards
-chkRyl(int card1, int card2){
-    if (card1 == 11 || card1 == 12 || card1 == 13) //if J/Q/K
-        return 10;
-    else if (card1 ==14){ //If Ace
-        if (card2 != 14) //If anything other than dual A
-            return 11;
-        else //Dual Ace: Initialized to equal 2 to prevent bust. Flex value
-            return 1;
+void chkRyl(int card, int& aceCnt, int& cardSum){ //Checked out and working 01/24/19
+    if (card == 11 || card == 12 || card == 13){ //If J/Q/K is pulled
+        cardSum += 10; //already adds the value to the card
     }
-    return card1; //If it is not any of the options.
+    else if (card == 14){
+        aceCnt++;
+        calcAce(card, aceCnt, cardSum);
+        cout << "aceCount: " << aceCnt << endl;
+    }
+    else
+        cardSum += card;
 }
 //Function which prints correct symbols based on card value
 string prntSym (int card){
@@ -139,7 +173,7 @@ string prntSym (int card){
 void calcAce (int card, int aceCnt, int& cardSum){ //Checked out/working 01/24/19
     int minVal =  0;
     int maxVal = 10;
-    for (int val = 1; val < aceCnt; val++){
+    for (int val = 0; val < aceCnt; val++){
         minVal++;
         maxVal++;
     }
@@ -174,17 +208,4 @@ void calcAce (int card, int aceCnt, int& cardSum){ //Checked out/working 01/24/1
             cardSum += minVal;
         }
     }
-}
-//Prototype function-chkRyl
-void chkRyl(int card, int& aceCnt, int& cardSum){ //Checked out and working 01/24/19
-    if (card == 11 || card == 12 || card == 13){ //If J/Q/K is pulled
-        cardSum += 10; //already adds the value to the card
-    }
-    else if (card == 14){
-        aceCnt++;
-        calcAce(card, aceCnt, cardSum);
-        cout << "aceCount: " << aceCnt << endl;
-    }
-    else
-        cardSum += card;
 }
