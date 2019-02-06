@@ -21,9 +21,6 @@ using namespace std;
 //Math/Physics/Conversions/Higher Dimensions - i.e. PI, e, etc...
 
 //Function Prototypes
-int chkVal (int, int, int &, int &, int &, string &);
-int handVal (int, int, int &, int &, int, int, int);
-void currAdj (int, int, int, int, int, int &);
 void draw (vector<int>&);
 int calcVal(vector<int>);
 string prntD(vector<int>);
