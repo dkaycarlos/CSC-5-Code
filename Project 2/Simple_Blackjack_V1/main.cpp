@@ -1,9 +1,9 @@
 /* 
  * File:   main.cpp
  * Author: Danielle Carlos
- * Created on February 3, 2019, 11:42 AM
+ * Created on February 4, 2019, 6:42 PM
  * Purpose: Conversion of MidTerm Blackjack Repeating Code into Functions
- * Version : 1
+ * Version : 1.0
  */
 
 //System Libraries
@@ -20,10 +20,14 @@ using namespace std;
 
 //Function Prototypes
 int chkVal (int, int, int &, int &, int &, string &);
+int handVal (int, int, int &, int &, int, int, int);
+void currAdj (int, int, int, int, int, int &);
 //Execution Begins Here!
 int main(int argc, char** argv) {
+    
     //Set the random number seed
     srand(static_cast<unsigned int>(time(0)));
+    
     //Dealer Variables
     int dCard1, //Initial dealer card, 1 card shown to player [Range: 2-14]   
         dCard2, //Second card shown on reveal phase [Range 2-14]
@@ -37,7 +41,7 @@ int main(int argc, char** argv) {
         dAceMax; // dAceMin + 10
     string dCardS; // Dealer's symbolic hand
     
-    // Player Variables
+    //Player Variables
     int pCard1, pCard2, //Initial player cards [Range: 2-14]
         pCardT,  //Temporary value used to hold pCardValue
         plyrSum, //Total sum of player's cards
@@ -57,6 +61,7 @@ int main(int argc, char** argv) {
     budget = 0.0; //Cumulative over multiple games
     //Repetition of game would begin here at initialization
     do{
+        cout << fixed << setprecision(2) << showpoint;
         dealSum = dAceCnt = dAceMin = dAceMax = dPreFix = dCurFix = 0;
         plyrSum = pAceCnt = pAceMin = pAceMax = pPreFix = pCurFix = 0;
         dCardS = pCardS = "";
@@ -67,120 +72,48 @@ int main(int argc, char** argv) {
 
         //Calculation of value for dealer's first card
         dCrdVal = chkVal(dCard1, dealSum, dAceCnt, dAceMin, dAceMax, dCardS);
-        //Determination of dealer's initial fixed value:
-        //Start of potential function
-        if (dCard1 != 14){
-            dCurFix += dCrdVal;
-            dealSum = dCurFix;
-        }
-        else{
-            if (dCurFix + dAceMax <= 21){
-                dealSum = dCurFix + dAceMax;
-            }
-            else{
-                dealSum = dCurFix + dAceMin;
-            }
-        }
-        dPreFix = dCurFix; //Updates fixed values
-        dCardS += " "; //Ensures spacing between cards
-        //End of Potential Function
-        
+        //Calculation of dealer's hand value, update fixed values if necessary
+        dealSum = handVal(dCard1, dCrdVal, dPreFix, dCurFix, dAceCnt, dAceMin, dAceMax);
+        //Ensure spacing between cards
+        dCardS += " "; 
         //Display Dealer's Initial Hand
         cout << "Dealer's Current Hand: " << dCardS << endl;
         cout << "Dealer's Current Sum: " << dealSum << endl;
 
-        //Determination of dCurFix if Ace used or Not: (Potential repeatable function)
-        if (dAceCnt > 0){
-            dCurFix = dealSum - dAceMax + 1*(dAceCnt - 1);
-            if(dCurFix != dPreFix){
-                dCurFix = dealSum - dAceMin + 1*(dAceCnt -1);
-            }
-        }
-        else {
-            dCurFix = dealSum; //It is set equal to the dPreFix
-        }
+        //Adjust current fixed value if aces in play or not
+        currAdj (dAceCnt, dAceMin, dAceMax, dealSum, dPreFix, dCurFix);
         //Calculation of value for dealer's second card
-        dCrdVal = chkVal(dCard2, dealSum, dAceCnt, dAceMin, dAceMax, dCardS);
-        //Determination of dCurFix values:
-        if (dCard2 != 14){ //If Non-Ace
-            dCurFix += dCrdVal;
-            dealSum = dCurFix;
-            if (dAceCnt > 0){ //If ace was the first card.
-                dealSum = dCurFix + dealSum;
-            }
-            else{
-                dealSum = dCurFix;
-            }
-        }
-        else{ //If Ace
-            if (dCurFix + dAceMax <= 21){
-                dealSum = dCurFix + dAceMax;
-            }
-            else{
-                dealSum = dCurFix + dAceMin;
-            }
-        }
-        dPreFix = dCurFix; //Updates dPreFix value to be current fixed value
-        dCardS += " "; //Ensures spacing between cards
-        cout << endl;  
-
-    //Calculation for Player's Initial Hand
+        dCrdVal = chkVal(dCard2, dealSum, dAceCnt, 
+                         dAceMin, dAceMax, dCardS);
+        //Calculation of dealer's current hand value, adjust fixed values if necessary
+        dealSum = handVal(dCard2, dCrdVal, dPreFix, 
+                          dCurFix, dAceCnt, dAceMin, dAceMax);
+        //Ensures spacing between cards
+        dCardS += " "; 
+        cout << endl;
+    //End of Dealer Initial calculations
+    //Begin Player Initial calculations:
+        //Calculation for Obtaining Player's Initial Hand
         pCard1 = (rand() % (14 - 2 + 1)) + 2; //Range 2-14
         pCard2 = (rand() % (14 - 2 + 1)) + 2; //Range 2-14
 
-
-        //Switch Case to Determine Value for pCard1:
+        //Calculation of player's first card
         pCrdVal = chkVal(pCard1, plyrSum, pAceCnt, pAceMin, pAceMax, pCardS);
-        //Determination of pPreFix for player
-        if (pCard1 != 14){
-            pCurFix += pCrdVal;
-            plyrSum = pCurFix;
-        }
-        else{
-            if (pCurFix + pAceMax <= 21){
-                plyrSum = pCurFix + pAceMax;
-            }
-            else{
-                plyrSum = pPreFix + pAceMin;
-            }
-        }
-        pPreFix = pCurFix;
-        pCardS += " "; //Ensures spacing between cards
+        //Calculate player's current hand, update any fixed values if needed
+        plyrSum = handVal(pCard1, pCrdVal, pPreFix, 
+                          pCurFix,pAceCnt, pAceMin, pAceMax);
+        //Ensures spacing between cards
+        pCardS += " ";
 
-
-        //Determination of pCurFix if Aces used or not
-        if (pAceCnt > 0){
-            pCurFix = plyrSum - pAceMax + 1*(pAceCnt - 1);
-            if(pCurFix != pCurFix){
-                pCurFix = plyrSum - pAceMin + 1*(pAceCnt -1);
-            }
-        }
-        else {
-            pCurFix = plyrSum; //It is set equal to the dPreFix
-        }
+        //Adjust current fixed value if aces in play or not
+        currAdj (pAceCnt, pAceMin, pAceMax, plyrSum, pPreFix, pCurFix);
         //Switch Case to Determine Value for pCard2:
         pCrdVal = chkVal(pCard2, plyrSum, pAceCnt, pAceMin, pAceMax, pCardS);
         //Determination of pCurFix values in case of Aces:
-        if (pCard2 != 14){
-            pCurFix += pCrdVal;
-            pPreFix = pCurFix;
-            if (pAceCnt > 0){ //If ace was the first card.
-                plyrSum = pCurFix + plyrSum;
-            }
-            else{
-                plyrSum = pCurFix;
-            }
-        }
-        else{
-            if (pCurFix + pAceMax <= 21){
-                plyrSum = pCurFix + pAceMax;
-            }
-            else{
-                plyrSum = pCurFix + pAceMin;
-            }
-        }
-        pPreFix = pCurFix;
-        pCardS += " "; //Ensures spacing between cards
+        plyrSum = handVal(pCard2, pCrdVal, pPreFix, pCurFix, 
+                                  pAceCnt, pAceMin, pAceMax);
+        //Ensures spacing between cards
+        pCardS += " "; 
 
         //Display of Player's Initial Total:
         cout << "Player's Current Hand: " << pCardS << endl;
@@ -191,192 +124,126 @@ int main(int argc, char** argv) {
         if (plyrSum == 21){
             budget += 3.00;
             cout << "Natural Blackjack! Player has " << plyrSum << "!" << endl;
+            cout << "You've earned $3.00!" << endl;
+            cout << "Current budget = $" << budget << endl;
             cout <<endl;
         }
         //Hit Phase Begins if Player has no Natural Blackjack
         else{
-            cout << "If you would like to hit, type H. Press any other key to stay." << endl;
+            cout << "If you would like to hit, type H. "
+                    "Press any other key to stay." << endl;
             cin >> pChoice;
             //Player Hit Phase Begins
             if (pChoice == 'H' || pChoice == 'h'){
                 do{
                     //"Draw the card"
                     pCardT = (rand() % (14 - 2 + 1)) + 2; //Range 2-14
-                    //Two Scenarios: Aces in Play or Not
-                    if (pAceCnt != 0){
-                        //Calculation of fixed value (Value without Aces)
-                        pCurFix = plyrSum - pAceMax; //Even with double aces,
-                            if (pCurFix != pPreFix){ //Ace values are compensated
-                                pCurFix = plyrSum - pAceMin;
-                            }
-                        //"pCardT value Determination"
-                        pCrdVal = chkVal(pCardT, plyrSum, pAceCnt, 
-                                         pAceMin, pAceMax, pCardS);
-                        //Calculation of "flexible Ace" begins:
-                        if (pCardT == 14){ 
-                            //Calculate immediately/No Update to pPreFix val
-                            if (pCurFix + pAceMax <= 21){ 
-                                plyrSum = pCurFix + pAceMax;
-                            }
-                            else { 
-                                plyrSum = pCurFix + pAceMin;
-                            }
-                        }
-                        else{ //Non-Ace Values
-                            //updates pPreFix with pCurFix values
-                            pCurFix += pCrdVal;
-                            if (pCurFix + pAceMax <= 21){
-                                plyrSum = pCurFix + pAceMax;
-                            }
-                            else{
-                                plyrSum = pCurFix + pAceMin;
-                            }
-                        }
-                        pPreFix = pCurFix;
-                        pCardS += " "; //Ensures spacing between cards
-                        //Calculation of Player's Current Value:
-                        cout << "Player's Current Hand: " << pCardS << endl;
-                        cout << "Player's Total Value: " << plyrSum << endl;
-                    }
-                    //Potentially could be superfluous code.
-                    else { //Scenario 2: Aces not In Play
-                        //"pCardT value Determination"
-                        pCrdVal = chkVal(pCardT, plyrSum, pAceCnt, 
-                                         pAceMin, pAceMax, pCardS);
-                    //Calculation of pCurFixd
-                        if (pCardT == 14){ //Calculate immediately/No Update to pPreFix val
-                            if (pCurFix + pAceMax <= 21){ //If highest ace val doesn't bust
-                                plyrSum = pCurFix + pAceMax;
-                            }
-                            else { //Else it can only be one other value.
-                                plyrSum = pCurFix + pAceMin;
-                            }
-                        }
-                        else{ //Non-Ace Values--updates pPreFix with pCurFix values
-                            pCurFix += pCrdVal;
-                            if (pCurFix + pAceMax <= 21){
-                                plyrSum = pCurFix + pAceMax;
-                            }
-                            else{
-                                plyrSum = pCurFix + pAceMin;
-                            }
-                        }
-                    pPreFix = pCurFix;
-                    pCardS += " "; //Ensures spacing between cards
-                    //Display of Player's Current Value:
+                    //Calculation of player's fixed value
+                    currAdj (pAceCnt, pAceMin, pAceMax, 
+                             plyrSum, pPreFix, pCurFix);
+                    //Player's drawn card value is determined
+                    pCrdVal = chkVal(pCardT, plyrSum, pAceCnt, 
+                                     pAceMin, pAceMax, pCardS);
+                    //Calculation of player's hand value
+                    plyrSum = handVal(pCardT, pCrdVal, pPreFix, 
+                                      pCurFix,pAceCnt, pAceMin, pAceMax);
+                    //Ensures spacing between cards
+                    pCardS += " ";
+
+                    //Calculation of Player's Current Value:
                     cout << "Player's Current Hand: " << pCardS << endl;
                     cout << "Player's Total Value: " << plyrSum << endl;
-                }
-                    //Potential Superfluous Code
-                //Bust Check:
-                if (plyrSum > 21){ //21 inclusive, but not automatic win
-                    cout << "Bust! Dealer wins! Player's total value is " << plyrSum << endl;
-                    pChoice = 'x';
-                }
-                else{
-                    cout << "If you would like to hit, type H. Press any other key to stay." << endl;
-                    cin >> pChoice;
+                    
+                    //Bust Check:
+                    if (plyrSum > 21){ //21 inclusive, but not automatic win
+                        cout << "Bust! Dealer wins! Player's total value is " 
+                             << plyrSum << endl;
+                        cout << "Current budget = $" << budget << endl;
+                        //Make player choice false to end hit phase
+                        pChoice = 'x';
+                    }
+                    else{
+                        //Prompt user if they would like to hit or stay
+                        cout << "If you would like to hit, type H. "
+                                "Press any other key to stay." << endl;
+                        cin >> pChoice;
+                        //Repeat if they choose to hit
                     }
                 } while (pChoice == 'H' || pChoice == 'h');
             //End of do-While Player Phase Loop
-            } //End of Player Phase - Dealer Phase Begins Here Conditionally
-            //Reveal Dealer's Hand and Current Sum
+            }
+            //End of Player Phase - Dealer Phase Begins Conditionally
+            //If player's sum is less than 21
             if (plyrSum <= 21){
                 cout << endl;
+                //Reveal dealer's hand to player
                 cout << "Dealer's Current Hand: " << dCardS << endl;
                 cout << "Dealer's Total Value: " << dealSum << endl;
                 cout << endl;
-
+                
+                //If dealer's hand value is less than 17
                 while (dealSum < 17){
-                   //Dealer's Draw's Card:
+                   //Dealer draws card
                     dCardT = (rand() % (14 - 2 + 1)) + 2; //Range 2-14;
-                    //Two Scenarios: Aces in Play or Not
-                    if (dAceCnt != 0){
-                        //Calculation of fixed value (Value without Aces)
-                        dCurFix = dealSum - dAceMax; //Even with double aces,
-                            if (dCurFix != dPreFix){ //Ace values are compensated
-                                dCurFix = dealSum - dAceMin;
-                            }
-                        //"dCardT value Determination"
+                    //Adjust fixed value if aces in play or not
+                    currAdj (dAceCnt, dAceMin, dAceMax, 
+                             dealSum, dPreFix, dCurFix);
+                        //Dealer's drawn card value is determined
                         dCrdVal = chkVal(dCardT, dealSum, dAceCnt, 
                                          dAceMin, dAceMax, dCardS);
-                        //Calculation of "flexible Ace" begins:
-                        if (dCardT == 14){ //Calculate immediately/No Update to dPreFix val
-                            if (dCurFix + dAceMax <= 21){ //If highest ace val doesn't bust
-                                dealSum = dCurFix + dAceMax;
-                            }
-                            else { //Else it can only be one other value.
-                                dealSum = dCurFix + dAceMin;
-                            }
-                        }
-                        else{ //Non-Ace Values--updates dPreFix with dCurFix values
-                            dCurFix += dCrdVal;
-                            if (dCurFix + dAceMax <= 21){
-                                dealSum = dCurFix + dAceMax;
-                            }
-                            else{
-                                dealSum = dCurFix + dAceMin;
-                            }
-                        }
-                        dPreFix = dCurFix;
+                        //Dealer's hand is calculated
+                        dealSum = handVal(dCardT, dCrdVal, dPreFix, 
+                                          dCurFix, dAceCnt, dAceMin, dAceMax);
                         dCardS += " "; //Ensures spacing between cards
-                    }
-                    else { //Scenario 2: Aces not In Play
-                        //"dCardT value Determination"
-                        dCrdVal = chkVal(dCardT, dealSum, dAceCnt, 
-                                         dAceMin, dAceMax, dCardS);
-                    //Calculation of dCurFixd
-                        if (dCardT == 14){ //Calculate immediately/No Update to dCurFix val
-                            if (dCurFix + dAceMax <= 21){ //If highest ace val doesn't bust
-                                dealSum = dCurFix + dAceMax;
-                            }
-                            else { //Else it can only be one other value.
-                                dealSum = dCurFix + dAceMin;
-                            }
-                        }
-                        else{ //Non-Ace Values--updates dCurFix with dCurFix values
-                            dCurFix += dCrdVal;
-                            if (dCurFix + dAceMax <= 21){
-                                dealSum = dCurFix + dAceMax;
-                            }
-                            else{
-                                dealSum = dCurFix + dAceMin;
-                            }
-                        }
-                    dCurFix = dCurFix;
-                    dCardS += " "; //Ensures spacing between cards
-                    }
+                        
+                    //If dealer's value is less than 17 hit again
+                    //Else
                 } //End of While Loop
-                //Display Dealer's Full Hand:
+                
+                //Display Dealer's Full Hand/Player's Hand
                 cout << "Dealer's Current Hand: " << dCardS << endl;
                 cout << "Dealer's Total Value: " << dealSum << endl;
-                //Bust Check:
+                cout << "Player's Current Hand: " << pCardS << endl;
+                cout << "Player's Current Value: " << plyrSum << endl;
+                //Bust Check for Dealer:
                 if (dealSum > 21){
-                    cout << "Bust! Player wins! Dealer's total value is " << dealSum << endl;
+                    cout << "Bust! Player wins! Dealer's total value is " 
+                         << dealSum << endl;
+                    //Add Money to Budget
+                    budget += 2.00;
+                    cout << "You've earned $2.00!" << endl;
+                    cout << "Current budget = $" << budget << endl;
+                    cout << endl;
                 }
                 //Dealer Hit Phase Ends-
-                //Comparison Phase Begins IFF dealSum and plyrSum are less than or equal to 21
+                //Comparison Phase Begins if player and dealer have not busted
                 else{
-                    cout << fixed << setprecision(2) << showpoint;
                   if (plyrSum > dealSum){
                       budget += 1.00;
-                      cout << "Player wins! " << plyrSum << " is greater than " << dealSum << "!" << endl;
-                      cout << "You've earned $" << budget << endl;
+                      cout << "Player wins! " << plyrSum << " is greater than " 
+                           << dealSum << "!" << endl;
+                      cout << "You've earned $1.00!"<< endl;
+                      cout << "Current budget = $" << budget << endl;
                   }
                   else if (plyrSum < dealSum){
-                      cout << "Dealer wins! " << dealSum << " is greater than " << plyrSum << "!" << endl;
+                      cout << "Dealer wins! " << dealSum << " is greater than " 
+                           << plyrSum << "!" << endl;
                   }
                   else{ //If plyrSum is not greater or less, it must be equal
-                      cout << "Tough cookies, it's a draw. " << plyrSum << " is equivalent to " << dealSum << endl;
+                      cout << "Tough cookies, it's a draw. " 
+                           << plyrSum << " is equivalent to " 
+                           << dealSum << endl;
                       budget += .50;
-                      cout << "You've earned $" << budget << endl;
+                      cout << "You've earned $0.50"<< endl;
+                      cout << "Current budget = $" << budget << endl;
                   }
                 }
             }
-        }//end of else for player option/end of game--Natural Blackjack skips beyond here
+        }//End of blackjack round
         //Prompt user to repeat or quit
         cout << endl;
-        cout << "Would you like to play again? Press any other key to continue or Q to quit." << endl;
+        cout << "Would you like to play again? "
+                "Press any other key to continue or Q to quit." << endl;
         cin >> pQuit;
         if (pQuit == 'Q' || pQuit == 'q'){
             ifQuit = true;
@@ -392,7 +259,66 @@ int main(int argc, char** argv) {
 
 //Auxiliary Functions Begins Here:
 
-int chkVal (int card,int cardSum, int &aceCnt, int &aceMin, int &aceMax, string &cardSym){
+void currAdj (int aceCnt, int aceMin, int aceMax, int cardSum, 
+                                    int prevFix, int & currFix){
+    //If there are aces in play:
+    if (aceCnt > 0){
+        currFix = cardSum - aceMax;
+        if(currFix != prevFix){
+            currFix = cardSum - aceMin;
+        }
+    }
+    //Sum value has no flex variables, is fixed
+    else {
+        currFix = cardSum; //It is set equal to the dPreFix
+    }
+}
+
+int handVal (int card, int cardVal, int &prevFix, int &currFix, 
+                            int aceCnt, int aceMin, int aceMax){
+    //If there are aces in play
+    if (aceCnt > 0){
+        //If there are aces in play
+        if (card == 14){
+            if (currFix + aceMax <= 21){
+                return currFix + aceMax;
+            }
+            else{
+                return currFix + aceMin;
+            }
+        }
+        else if (card != 14){
+              currFix += cardVal;
+              prevFix = currFix;
+            if (currFix + aceMax <= 21){
+                return currFix + aceMax;
+            }
+            else{
+                return currFix + aceMin;
+            }
+        }
+    }
+    else {
+        //If No Aces are in Play
+        if (card != 14){
+        currFix += cardVal;
+        prevFix = currFix;
+        return currFix;
+        }
+        else {
+            if (currFix + aceMax <= 21){
+                return currFix + aceMax;
+            }
+            else{
+                return currFix + aceMin;
+            }
+        }
+    }
+    return 0;
+}
+
+int chkVal (int card,int cardSum, int &aceCnt, 
+                int &aceMin, int &aceMax, string &cardSym){
     switch(card){ //10 Value Cards Conversion/Symbol Conversion
         case 2: cardSym += '2'; return 2; 
         case 3: cardSym += '3'; return 3;
