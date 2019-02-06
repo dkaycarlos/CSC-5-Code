@@ -10,3 +10,13 @@ Technical Changes:
 Style Changes:
 -Main function comments resemble pseudocode required for write-up
 -Added more print messages for keeping track of player's current budget.
+
+
+Version 2.0
+
+Techinical Changes:
+-Implementation of vectors to hold hand instead of relying on variables.
+-Card calculation function updated with implementation of vectors. Calculation is now all handled by one function rather than three seperate functions. (calcVal)
+-Creation of new functions to sort cards in hand: prntD and prntS.
+-chkVal converted into prntSym, returns only the char symbols now.
+-Removed obsolete functions and variables from code due to vector implementation and updated functions.
