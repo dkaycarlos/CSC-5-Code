@@ -22,6 +22,7 @@ Techinical Changes:
 -Removed obsolete functions and variables from code due to vector implementation and updated functions.
 
 Version 3.0
+
 Technical Changes:
 -Implementation of 52 card deck/discard pile via 2D Array and static array
 -Draw function updated with implementation of 52 card deck. Values will no longer repeat more than four times max.
@@ -29,3 +30,10 @@ Technical Changes:
 -Removed obsolete functions from code.
 -Added function shuff, manages reset of shuffling functions
 -Added check to ensure 52 card deck will not fall under 75%
+
+Version 4.0
+
+Techincal Changes:
+-Added in counters to accumulate data for a stats data file
+-Added in stats feature and menu feature
+-Removed obsolete code
